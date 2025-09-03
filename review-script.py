@@ -87,91 +87,150 @@ class ENAASReviewerV2:
         # 验证文件命名规范
         self._validate_file_naming_convention()
 
-    def _scan_openshift_directories(self) -> List[Tuple[Path, Path, Optional[Path]]]:
-        """自动扫描openshift文件夹，找到所有需要检查的文件组合"""
-        print("🔍 开始自动扫描openshift文件夹...")
-        
-        openshift_dirs = []
+    def _scan_openshift_directories(self, target_directory: Optional[str] = None) -> List[Tuple[Path, Path, Optional[Path]]]:
+        """通用递归扫描，找到所有需要检查的文件组合"""
         current_dir = Path.cwd()
         
-        # 查找所有openshift文件夹
-        for root, dirs, files in os.walk(current_dir):
-            if 'openshift' in dirs:
-                openshift_path = Path(root) / 'openshift'
-                openshift_dirs.append(openshift_path)
+        if target_directory:
+            # 指定目录扫描模式：从根目录开始寻找目标目录
+            print(f"🔍 从根目录开始寻找目录: {target_directory}")
+            target_path = self._find_directory_recursively(current_dir, target_directory)
+            
+            if not target_path:
+                print(f"❌ 在根目录下未找到名为 '{target_directory}' 的目录")
+                print("💡 提示：请检查目录名称是否正确，或使用 'review openshift manifest' 查看所有可用目录")
+                return []
+            
+            print(f"🎯 找到目标目录: {target_path.relative_to(current_dir)}")
+            print(f"🔍 开始扫描该目录下的所有内容...")
+            scan_root = target_path
+        else:
+            # 全目录扫描模式
+            print("🔍 开始通用递归扫描...")
+            scan_root = current_dir
         
-        if not openshift_dirs:
-            print("❌ 未找到任何openshift文件夹")
-            return []
-        
-        print(f"✅ 找到 {len(openshift_dirs)} 个openshift文件夹:")
-        for openshift_dir in openshift_dirs:
-            print(f"   - {openshift_dir.relative_to(current_dir)}")
-        
-        # 在每个openshift文件夹下查找区文件夹
         file_combinations = []
-        for openshift_dir in openshift_dirs:
-            for region_dir in openshift_dir.iterdir():
-                if region_dir.is_dir():
-                    print(f"\n📁 检查区域: {region_dir.relative_to(current_dir)}")
-                    
-                    # 查找文件
-                    enaas_file = None
-                    secret_file = None
-                    dc_file = None
-                    
-                    # 查找enaas文件
-                    for file in region_dir.glob('*.json'):
-                        if 'enaas' in file.name.lower():
-                            enaas_file = file
-                            break
-                    
-                    # 查找secret文件
-                    for file in region_dir.glob('*_secret.yml'):
-                        secret_file = file
-                        break
-                    if not secret_file:
-                        for file in region_dir.glob('*_secret.yaml'):
-                            secret_file = file
-                            break
-                    
-                    # 查找dc文件
-                    for file in region_dir.glob('*_dc.yml'):
-                        dc_file = file
-                        break
-                    if not dc_file:
-                        for file in region_dir.glob('*_dc.yaml'):
-                            dc_file = file
-                            break
-                    
-                    # 检查是否找到必要的文件
-                    if enaas_file and secret_file:
-                        print(f"   ✅ 找到文件组合:")
-                        print(f"      - ENAAS: {enaas_file.name}")
-                        print(f"      - Secret: {secret_file.name}")
-                        if dc_file:
-                            print(f"      - DC: {dc_file.name}")
-                        else:
-                            print(f"      - DC: 未找到")
-                        
-                        file_combinations.append((enaas_file, secret_file, dc_file))
-                    else:
-                        missing_files = []
-                        if not enaas_file:
-                            missing_files.append("enaas.json文件")
-                        if not secret_file:
-                            missing_files.append("*_secret.yml文件")
-                        print(f"   ⚠️  缺少必要文件: {', '.join(missing_files)}")
+        scanned_dirs = set()  # 避免重复扫描
         
-        print(f"\n📊 扫描完成，找到 {len(file_combinations)} 个有效的文件组合")
+        def scan_directory_recursive(directory: Path, depth: int = 0) -> None:
+            """递归扫描目录，查找配置文件组合"""
+            if depth > 10:  # 防止无限递归
+                return
+                
+            if directory in scanned_dirs:
+                return
+                
+            scanned_dirs.add(directory)
+            
+            # 检查当前目录是否包含配置文件
+            enaas_files = list(directory.glob('*.json'))
+            secret_files = list(directory.glob('*_secret.yml')) + list(directory.glob('*_secret.yaml'))
+            dc_files = list(directory.glob('*_dc.yml')) + list(directory.glob('*_dc.yaml'))
+            
+            # 查找enaas文件
+            enaas_file = None
+            for file in enaas_files:
+                if 'enaas' in file.name.lower():
+                    enaas_file = file
+                    break
+            
+            # 如果找到enaas文件，检查当前目录的完整性
+            if enaas_file:
+                # 显示相对路径（相对于扫描根目录）
+                relative_path = directory.relative_to(scan_root)
+                if relative_path == Path('.'):
+                    display_path = scan_root.name if target_directory else "当前目录"
+                else:
+                    display_path = f"{scan_root.name}/{relative_path}" if target_directory else str(relative_path)
+                
+                print(f"\n📁 发现配置目录: {display_path}")
+                
+                # 查找secret文件
+                secret_file = None
+                if secret_files:
+                    secret_file = secret_files[0]  # 取第一个找到的
+                
+                # 查找dc文件
+                dc_file = None
+                if dc_files:
+                    dc_file = dc_files[0]  # 取第一个找到的
+                
+                # 检查是否找到必要的文件
+                if secret_file:
+                    print(f"   ✅ 找到文件组合:")
+                    print(f"      - ENAAS: {enaas_file.name}")
+                    print(f"      - Secret: {secret_file.name}")
+                    if dc_file:
+                        print(f"      - DC: {dc_file.name}")
+                    else:
+                        print(f"      - DC: 未找到")
+                    
+                    file_combinations.append((enaas_file, secret_file, dc_file))
+                else:
+                    print(f"   ⚠️  缺少secret文件")
+                    print(f"      - ENAAS: {enaas_file.name}")
+                    print(f"      - 需要: *_secret.yml 或 *_secret.yaml")
+            
+            # 递归扫描子目录
+            try:
+                for item in directory.iterdir():
+                    if item.is_dir() and not item.name.startswith('.'):
+                        scan_directory_recursive(item, depth + 1)
+            except PermissionError:
+                # 跳过无权限的目录
+                pass
+        
+        # 开始递归扫描
+        scan_directory_recursive(scan_root)
+        
+        if not file_combinations:
+            if target_directory:
+                print(f"❌ 在指定目录 {target_directory} 中未找到任何有效的配置文件组合")
+            else:
+                print("❌ 未找到任何有效的配置文件组合")
+            print("💡 提示：确保目录中包含以下文件：")
+            print("   - enaas-details.json 或包含'enaas'的.json文件")
+            print("   - *_secret.yml 或 *_secret.yaml 文件")
+            print("   - *_dc.yml 或 *_dc.yaml 文件（可选）")
+        else:
+            if target_directory:
+                print(f"\n📊 扫描完成，在 {target_directory} 目录中找到 {len(file_combinations)} 个有效的文件组合")
+            else:
+                print(f"\n📊 扫描完成，找到 {len(file_combinations)} 个有效的文件组合")
+        
         return file_combinations
+    
+    def _find_directory_recursively(self, root_dir: Path, target_name: str, depth: int = 0) -> Optional[Path]:
+        """递归查找指定名称的目录"""
+        if depth > 10:  # 防止无限递归
+            return None
+        
+        # 检查当前目录
+        if root_dir.name == target_name:
+            return root_dir
+        
+        # 递归搜索子目录
+        try:
+            for item in root_dir.iterdir():
+                if item.is_dir() and not item.name.startswith('.'):
+                    result = self._find_directory_recursively(item, target_name, depth + 1)
+                    if result:
+                        return result
+        except PermissionError:
+            # 跳过无权限的目录
+            pass
+        
+        return None
 
-    def run_batch_review(self) -> List[ReviewResult]:
+    def run_batch_review(self, target_directory: Optional[str] = None) -> List[ReviewResult]:
         """批量检查所有找到的文件组合"""
-        print("🚀 开始批量检查所有openshift配置...")
+        if target_directory:
+            print(f"🚀 开始批量检查指定目录: {target_directory}")
+        else:
+            print("🚀 开始批量检查所有openshift配置...")
         print("=" * 80)
         
-        file_combinations = self._scan_openshift_directories()
+        file_combinations = self._scan_openshift_directories(target_directory)
         if not file_combinations:
             print("❌ 没有找到需要检查的文件组合")
             return []
@@ -749,24 +808,36 @@ class ENAASReviewerV2:
 def main():
     """主函数"""
     # 检查是否是自动扫描模式
-    if len(sys.argv) == 2 and sys.argv[1] == "review openshift manifest":
+    if len(sys.argv) >= 2 and sys.argv[1] == "review openshift manifest":
         print("🔍 启动自动扫描模式...")
+        
+        # 检查是否指定了目标目录
+        target_directory = None
+        if len(sys.argv) == 3:
+            target_directory = sys.argv[2]
+            print(f"🎯 目标目录: {target_directory}")
+        
         # 创建reviewer实例（文件路径不重要，因为我们使用自动扫描）
         reviewer = ENAASReviewerV2("dummy.json", "dummy.yml")
-        reviewer.run_batch_review()
+        reviewer.run_batch_review(target_directory)
         return
     
     # 手动指定文件模式
-    if len(sys.argv) < 3 or len(sys.argv) == 4:
+    if len(sys.argv) < 3 or len(sys.argv) > 4:
         print("用法:")
         print("  1. 自动扫描模式:")
-        print("     python enaas_reviewer_v2.py 'review openshift manifest'")
+        print("     python enaas_reviewer_v2.py 'review openshift manifest'                    # 扫描所有目录")
+        print("     python enaas_reviewer_v2.py 'review openshift manifest' <目录名>          # 从根目录寻找并扫描指定目录")
         print("  2. 手动指定文件模式:")
         print("     python enaas_reviewer_v2.py <enaas.json路径> <*_secret.yml路径> [*_dc.yml路径]")
         print("")
         print("示例:")
-        print("  # 自动扫描所有openshift文件夹")
+        print("  # 自动扫描所有目录")
         print("  python enaas_reviewer_v2.py 'review openshift manifest'")
+        print("")
+        print("  # 从根目录寻找并扫描指定目录")
+        print("  python enaas_reviewer_v2.py 'review openshift manifest' test-api")
+        print("  python enaas_reviewer_v2.py 'review openshift manifest' cicdscript")
         print("")
         print("  # 手动检查特定文件")
         print("  python enaas_reviewer_v2.py enaas-details.json myapp_secret.yml")
