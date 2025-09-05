@@ -5,19 +5,19 @@
         <mxCell id="0"/>
         <mxCell id="1" parent="0"/>
 
-        <mxCell id="db" value="System A&#10;DB" style="shape=rectangle;whiteSpace=wrap;html=1;rounded=0;" vertex="1" parent="1">
+        <mxCell id="db" value="&lt;&lt;database&gt;&gt;&#10;System A DB" style="shape=cylinder;whiteSpace=wrap;html=1;boundedLbl=1;" vertex="1" parent="1">
           <mxGeometry x="40" y="200" width="140" height="60" as="geometry"/>
         </mxCell>
 
-        <mxCell id="appC" value="Application C&#10;(ingest MT + MX)" style="shape=rectangle;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="appC" value="&lt;&lt;component&gt;&gt;&#10;Application C&#10;(ingest MT + MX)" style="shape=component;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="260" y="200" width="200" height="60" as="geometry"/>
         </mxCell>
 
-        <mxCell id="mq" value="Downstream A&#10;MQ Endpoint (MT)" style="shape=rectangle;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="mq" value="&lt;&lt;component&gt;&gt;&#10;Downstream A&#10;MQ Endpoint&#10;(MT)" style="shape=component;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="540" y="140" width="220" height="60" as="geometry"/>
         </mxCell>
 
-        <mxCell id="http" value="Downstream A&#10;HTTP Endpoint (MX)" style="shape=rectangle;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="http" value="&lt;&lt;component&gt;&gt;&#10;Downstream A&#10;HTTP Endpoint&#10;(MX)" style="shape=component;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="540" y="260" width="220" height="60" as="geometry"/>
         </mxCell>
 
@@ -31,6 +31,10 @@
 
         <mxCell id="e3" value="HTTP (MX)" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="appC" target="http">
           <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="legend" value="Legend&#10;- &lt;&lt;component&gt;&gt;: UML Component&#10;- &lt;&lt;database&gt;&gt;: Database&#10;- Solid arrow: Directed interaction&#10;- (MT): MQ path&#10;- (MX): HTTP path" style="shape=rectangle;whiteSpace=wrap;html=1;rounded=0;fillColor=#f9f9f9;strokeColor=#999;" vertex="1" parent="1">
+          <mxGeometry x="820" y="40" width="260" height="180" as="geometry"/>
         </mxCell>
       </root>
     </mxGraphModel>
