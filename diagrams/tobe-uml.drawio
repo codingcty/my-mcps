@@ -1,0 +1,93 @@
+<mxfile host="app.diagrams.net" modified="2025-09-05T00:00:00.000Z" agent="AI" version="24.7.0">
+  <diagram id="tobe-uml" name="To-Be (UML)">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- Nodes -->
+        <mxCell id="db" value="System A&#10;DB «database»" style="shape=cylinder;whiteSpace=wrap;html=1;rounded=0;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="200" width="140" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="appC" value="Application C&#10;«component» (ingests MT + MX)" style="shape=rectangle;whiteSpace=wrap;html=1;rounded=0;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="260" y="200" width="220" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="mq" value="Downstream A&#10;MQ Endpoint «interface»" style="shape=rectangle;whiteSpace=wrap;html=1;rounded=0;align=center;verticalAlign=middle;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="140" width="240" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="http" value="Downstream A&#10;HTTP Endpoint «interface»" style="shape=rectangle;whiteSpace=wrap;html=1;rounded=0;align=center;verticalAlign=middle;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="280" width="240" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- Flows / Dependencies -->
+        <mxCell id="e_db_to_app" value="pull MT &amp; MX alerts" style="endArrow=block;html=1;rounded=0;dashed=0;" edge="1" parent="1" source="db" target="appC">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_app_to_mq" value="IBM MQ (MT)" style="endArrow=open;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="appC" target="mq">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_app_to_http" value="HTTP (MX)" style="endArrow=open;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="appC" target="http">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Legend Container -->
+        <mxCell id="legend" value="Legend" style="shape=rectangle;whiteSpace=wrap;html=1;rounded=1;fillColor=#f9f9f9;strokeColor=#666666;align=left;verticalAlign=top;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="840" y="40" width="240" height="220" as="geometry"/>
+        </mxCell>
+
+        <!-- Legend: Component -->
+        <mxCell id="legend_comp_shape" value="«component»" style="shape=rectangle;whiteSpace=wrap;html=1;rounded=0;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="856" y="72" width="90" height="26" as="geometry"/>
+        </mxCell>
+        <mxCell id="legend_comp_text" value="Component" style="text;html=1;align=left;verticalAlign=middle;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="956" y="72" width="110" height="26" as="geometry"/>
+        </mxCell>
+
+        <!-- Legend: Database -->
+        <mxCell id="legend_db_shape" value="" style="shape=cylinder;whiteSpace=wrap;html=1;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="856" y="108" width="34" height="26" as="geometry"/>
+        </mxCell>
+        <mxCell id="legend_db_text" value="Database" style="text;html=1;align=left;verticalAlign=middle;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="896" y="108" width="170" height="26" as="geometry"/>
+        </mxCell>
+
+        <!-- Legend: External / Interface -->
+        <mxCell id="legend_ext_shape" value="«interface»" style="shape=rectangle;whiteSpace=wrap;html=1;rounded=0;dashed=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="856" y="144" width="90" height="26" as="geometry"/>
+        </mxCell>
+        <mxCell id="legend_ext_text" value="External interface" style="text;html=1;align=left;verticalAlign=middle;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="956" y="144" width="110" height="26" as="geometry"/>
+        </mxCell>
+
+        <!-- Legend: Data Flow (solid) -->
+        <mxCell id="legend_flow" value="Data flow" style="text;html=1;align=left;verticalAlign=middle;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="956" y="180" width="110" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="legend_flow_edge" value="" style="endArrow=block;html=1;rounded=0;dashed=0;strokeColor=#333333;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="860" y="190" as="sourcePoint"/>
+            <mxPoint x="946" y="190" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Legend: Dependency (dashed) -->
+        <mxCell id="legend_dep" value="Dependency" style="text;html=1;align=left;verticalAlign=middle;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="956" y="206" width="110" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="legend_dep_edge" value="" style="endArrow=open;html=1;rounded=0;dashed=1;strokeColor=#333333;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="860" y="216" as="sourcePoint"/>
+            <mxPoint x="946" y="216" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
+
